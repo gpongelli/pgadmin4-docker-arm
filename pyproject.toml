@@ -1,0 +1,38 @@
+[tool.poetry]
+    name = "pgadmin4-docker-armv7"
+    version = "1.0.0"
+    description = "Builder for pgadmin4 on armv7 architecture (Raspberry Pi)"
+    authors = ["Gabriele Pongelli <gabriele.pongelli@gmail.com>"]
+    readme = "README.md"
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'Natural Language :: English',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+    ]
+    packages = [
+    ]
+
+    [tool.poetry.dependencies]
+        python = ">=3.7.0,<4.0"
+        requests = "^2.28.2"
+        requests-html = "^0.10.0"
+        semver = "^2.13.0"
+        docker = "^6.0.1"
+
+    [tool.poetry.group.devel]
+        optional = true
+        [tool.poetry.group.devel.dependencies]
+            black  = "^22.10.0"
+
+[tool.black]
+line-length = 120
+target-version = ['py37']
+
+
+[build-system]
+    requires = ["poetry-core>=1.0.0"]
+    build-backend = "poetry.core.masonry.api"
+

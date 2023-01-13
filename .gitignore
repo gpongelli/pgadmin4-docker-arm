@@ -1,0 +1,3 @@
+debug-*.Dockerfile
+.vscode
+.idea*
