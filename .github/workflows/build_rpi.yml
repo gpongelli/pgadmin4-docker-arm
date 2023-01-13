@@ -58,7 +58,7 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
         run: |
-          python build_versions.py
+          poetry run python build_versions.py
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v3
