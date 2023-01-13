@@ -373,39 +373,5 @@ if __name__ == "__main__":
     )
     parser.add_argument("--debug", action="store_true", help="Write generated dockerfiles to disk")
 
-
-    _l = 15
-    TEST = "TEST"
-    print(f"{TEST:~^{_l}}")
-
-    headings = ["Tag", "pgAdmin version", "Python version", "Distro", "Architecture"]
-
-    head_length = list(map(lambda x: len(x), headings))
-    _e = [3, 4, 99,7, 22 ]
-    _u = [head_length, _e]
-
-
-    res = [max(i) for i in zip(*_u)][1]
-
-
-
-    headings = ["Tag", "pgAdmin version", "Python version", "Distro", "Architecture"]
-
-    def length_calc():
-        table = [headings]
-        table.append([f" adfdaf", "zgbdsahg", "python_canonical", 'distro', "armv7"])
-        _max = []
-
-        for i in zip(*table):
-            print(max(list(map(lambda x: len(x), i))))
-
-        print(list(map(lambda x: len(x), [i for i in zip(*table)])))
-
-        for _x in range(0, len(headings)):
-            _max.append(len([max(i) for i in zip(*table)][_x]))
-        return _max
-
-    _widhts = length_calc()
-
     args = vars(parser.parse_args())
     main(**args)
