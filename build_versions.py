@@ -76,8 +76,8 @@ def decide_python_versions(distros):
     # Skip unreleased and unsupported
     _python_versions = get_active_python_versions(docker_images=True)
     supported_versions = [v for v in _python_versions if v["start"] <= todays_date <= v["end"]]
-    _lt = list(map(lambda x: x['docker_images'], supported_versions))
-    tags = [tag for tag in list(chain(*_lt)) if python_wanted_tag_pattern.match(tag)]
+    _lt = list(chain(*map(lambda x: x['docker_images'], supported_versions)))
+    tags = [tag for tag in _lt if python_wanted_tag_pattern.match(tag)]
 
     versions = []
     for supported_version in supported_versions:
