@@ -14,6 +14,16 @@ This image uses an unprivileged user, and uses port `5050` instead of `80`.
 To access the web-interface on port `80` instead of `5050`, you can map the
 port using `-p 80:5050`.
 
+## Fix issue of Docker on Mac OSX
+
+Sometimes happens that Docker on Mack hangs at startup, an useful list of command to fix is:
+
+```bash
+rm -rf ~/Library/Containers/com.docker.*
+cd /usr/local/bin
+chmod 0755 dock*
+```
+
 ## Original credits 
 
 Credits for the starting structure of this project goes to [FlorianASchroeder](https://github.com/FlorianASchroeder/pgadmin4-docker).
