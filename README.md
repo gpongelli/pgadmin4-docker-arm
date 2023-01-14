@@ -18,7 +18,7 @@ port using `-p 80:5050`.
 
 Credits for the starting structure of this project goes to [FlorianASchroeder](https://github.com/FlorianASchroeder/pgadmin4-docker).
 
-Starting from that project, I've added the gihub actions to build docker image for Raspberry's armv7 architecture.
+Starting from that project, I've added the github actions to build docker image for Raspberry's armv7 architecture.
 
 
 ## Tags
