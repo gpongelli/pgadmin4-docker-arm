@@ -16,7 +16,7 @@ from requests_html import HTMLSession
 
 DOCKER_IMAGE_NAME = "gpongelli/pgadmin4-docker-armv7"
 VERSIONS_PATH = Path("versions.json")
-DEFAULT_DISTRO = "bullseye"
+DEFAULT_DISTRO = ""
 DISTROS = ["alpine"]
 DEFAULT_DISTROS = ["alpine"]
 DISTRO_TEMPLATE = {'alpine': 'raspberry'}
