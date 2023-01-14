@@ -5,6 +5,7 @@ import re
 from datetime import datetime
 from functools import cmp_to_key
 from io import BytesIO
+from itertools import chain
 from pathlib import Path
 
 import docker
@@ -13,6 +14,8 @@ import requests
 import semver
 
 from requests_html import HTMLSession
+from python_active_versions.python_active_versions import get_active_python_versions
+
 
 DOCKER_IMAGE_NAME = "gpongelli/pgadmin4-docker-armv7"
 VERSIONS_PATH = Path("versions.json")
@@ -27,57 +30,9 @@ todays_date = datetime.utcnow().date().isoformat()
 by_semver_key = cmp_to_key(semver.compare)
 
 
-def _fetch_tags(package, supp_versions):
-    # Fetch available docker tags
-    _names = []
-    for _version in supp_versions:
-
-        _next_page = True
-        _page = 1
-        while _next_page:
-            print(f"Fetching docker tags for {package} {_version['latest_sw']} , page {_page}")
-            result = requests.get(f"https://registry.hub.docker.com/v2/repositories/library/{package}/tags?"
-                                  f"name={_version['latest_sw']}&page={_page}")
-            _json = result.json()
-            if not _json['next']:
-                _next_page = False
-            _page += 1
-            _names.extend([r["name"] for r in _json['results']])
-
-    return _names
-
-
 def _latest_patch(tags, ver, patch_pattern, distro):
     tags = [tag for tag in tags if tag.startswith(ver) and tag.endswith(f"-{distro}") and patch_pattern.match(tag)]
     return sorted(tags, key=by_semver_key, reverse=True)[0] if tags else ""
-
-
-def scrape_supported_python_versions():
-    """Scrape supported python versions (risky)"""
-    versions = []
-    version_table_selector = "#status-of-python-versions table"
-
-    r = HTMLSession().get("https://devguide.python.org/versions/")
-    version_table = r.html.find(version_table_selector, first=True)
-
-    # match development information with latest downloadable release
-    _py_specific_release = ".download-list-widget li"
-    r = HTMLSession().get("https://www.python.org/downloads/")
-    spec_table = r.html.find(_py_specific_release)
-    _downloadable_versions = [li.find('span a', first=True).text.split(' ')[1] for li in spec_table]
-
-    for ver in version_table.find("tbody tr"):
-        branch, _, _, first_release, end_of_life, _ = [v.text for v in ver.find("td")]
-
-        print(f"Found Python branch: {branch}")
-        _matching_version = list(filter(lambda d: d.startswith(branch), _downloadable_versions))
-        _latest_sw = branch
-        if _matching_version:
-            _latest_sw = _matching_version[0]
-
-        versions.append({"version": branch, "latest_sw": _latest_sw, "start": first_release, "end": end_of_life})
-
-    return versions
 
 
 def scrape_supported_pgadmin_versions():
@@ -119,8 +74,10 @@ def decide_python_versions(distros):
     python_wanted_tag_pattern = re.compile(python_patch_re)
 
     # Skip unreleased and unsupported
-    supported_versions = [v for v in scrape_supported_python_versions() if v["start"] <= todays_date <= v["end"]]
-    tags = [tag for tag in _fetch_tags("python", supported_versions) if python_wanted_tag_pattern.match(tag)]
+    _python_versions = get_active_python_versions(docker_images=True)
+    supported_versions = [v for v in _python_versions if v["start"] <= todays_date <= v["end"]]
+    _lt = list(map(lambda x: x['docker_images'], supported_versions))
+    tags = [tag for tag in list(chain(*_lt)) if python_wanted_tag_pattern.match(tag)]
 
     versions = []
     for supported_version in supported_versions:
