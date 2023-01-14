@@ -1,5 +1,74 @@
 {
   "versions": [
-
+    {
+      "key": "6.18-py3.11-alpine",
+      "python": "3.11",
+      "python_canonical": "3.11.1",
+      "python_image": "3.11.1-alpine",
+      "pgadmin": "6.18",
+      "pgadmin_canonical": "6.18.0",
+      "pgadmin_whl": "pgadmin4-6.18-py3-none-any.whl",
+      "distro": "alpine"
+    },
+    {
+      "key": "6.18-py3.10-alpine",
+      "python": "3.10",
+      "python_canonical": "3.10.9",
+      "python_image": "3.10.9-alpine",
+      "pgadmin": "6.18",
+      "pgadmin_canonical": "6.18.0",
+      "pgadmin_whl": "pgadmin4-6.18-py3-none-any.whl",
+      "distro": "alpine"
+    },
+    {
+      "key": "6.18-py3.9-alpine",
+      "python": "3.9",
+      "python_canonical": "3.9.16",
+      "python_image": "3.9.16-alpine",
+      "pgadmin": "6.18",
+      "pgadmin_canonical": "6.18.0",
+      "pgadmin_whl": "pgadmin4-6.18-py3-none-any.whl",
+      "distro": "alpine"
+    },
+    {
+      "key": "6.18-py3.8-alpine",
+      "python": "3.8",
+      "python_canonical": "3.8.16",
+      "python_image": "3.8.16-alpine",
+      "pgadmin": "6.18",
+      "pgadmin_canonical": "6.18.0",
+      "pgadmin_whl": "pgadmin4-6.18-py3-none-any.whl",
+      "distro": "alpine"
+    },
+    {
+      "key": "6.18-py3.7-alpine",
+      "python": "3.7",
+      "python_canonical": "3.7.16",
+      "python_image": "3.7.16-alpine",
+      "pgadmin": "6.18",
+      "pgadmin_canonical": "6.18.0",
+      "pgadmin_whl": "pgadmin4-6.18-py3-none-any.whl",
+      "distro": "alpine"
+    },
+    {
+      "key": "6.17-py3.11-alpine",
+      "python": "3.11",
+      "python_canonical": "3.11.1",
+      "python_image": "3.11.1-alpine",
+      "pgadmin": "6.17",
+      "pgadmin_canonical": "6.17.0",
+      "pgadmin_whl": "pgadmin4-6.17-py3-none-any.whl",
+      "distro": "alpine"
+    },
+    {
+      "key": "6.17-py3.10-alpine",
+      "python": "3.10",
+      "python_canonical": "3.10.9",
+      "python_image": "3.10.9-alpine",
+      "pgadmin": "6.17",
+      "pgadmin_canonical": "6.17.0",
+      "pgadmin_whl": "pgadmin4-6.17-py3-none-any.whl",
+      "distro": "alpine"
+    }
   ]
 }

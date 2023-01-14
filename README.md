@@ -33,22 +33,6 @@ To use a specific combination of pgAdmin 4 and python see the following table of
 | `6.18-py3.7-alpine`  |      6.18       |     3.7.16     | alpine |    armv7     |
 | `6.17-py3.11-alpine` |      6.17       |     3.11.1     | alpine |    armv7     |
 | `6.17-py3.10-alpine` |      6.17       |     3.10.9     | alpine |    armv7     |
-| `6.17-py3.9-alpine`  |      6.17       |     3.9.16     | alpine |    armv7     |
-| `6.17-py3.8-alpine`  |      6.17       |     3.8.16     | alpine |    armv7     |
-| `6.17-py3.7-alpine`  |      6.17       |     3.7.16     | alpine |    armv7     |
-| `6.16-py3.11-alpine` |      6.16       |     3.11.1     | alpine |    armv7     |
-| `6.16-py3.10-alpine` |      6.16       |     3.10.9     | alpine |    armv7     |
-| `6.16-py3.9-alpine`  |      6.16       |     3.9.16     | alpine |    armv7     |
-| `6.16-py3.8-alpine`  |      6.16       |     3.8.16     | alpine |    armv7     |
-| `6.16-py3.7-alpine`  |      6.16       |     3.7.16     | alpine |    armv7     |
-| `6.15-py3.10-alpine` |      6.15       |     3.10.9     | alpine |    armv7     |
-| `6.15-py3.9-alpine`  |      6.15       |     3.9.16     | alpine |    armv7     |
-| `6.15-py3.8-alpine`  |      6.15       |     3.8.16     | alpine |    armv7     |
-| `6.15-py3.7-alpine`  |      6.15       |     3.7.16     | alpine |    armv7     |
-| `6.9-py3.10-alpine`  |       6.9       |     3.10.9     | alpine |    armv7     |
-|  `6.9-py3.9-alpine`  |       6.9       |     3.9.16     | alpine |    armv7     |
-|  `6.9-py3.8-alpine`  |       6.9       |     3.8.16     | alpine |    armv7     |
-|  `6.9-py3.7-alpine`  |       6.9       |     3.7.16     | alpine |    armv7     |
 
 Lovely! These tags are kept updated automatically (when new minor or patch version are released) by `build_versions.py` which is run twice a day on CircleCI.
 
