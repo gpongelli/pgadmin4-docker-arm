@@ -103,11 +103,23 @@ def decide_python_versions(distros):
     return sorted(versions, key=lambda v: by_semver_key(v["canonical_version"]), reverse=True)
 
 
-def decide_pgadmin_versions():
+def decide_pgadmin_versions(pgadmin_min_ver):
     supported_versions = scrape_supported_pgadmin_versions()
-    
-    versions = supported_versions
-    return versions
+
+    # version must contain three numbers
+    if len(pgadmin_min_ver.split('.')) == 2:
+        pgadmin_min_ver = pgadmin_min_ver + '.0'
+    _v_min = semver.VersionInfo.parse(pgadmin_min_ver)
+    _filtered_version = []
+    for _v in supported_versions:
+        _ver = _v['version']
+        if len(_ver.split('.')) == 2:
+            _ver = _ver + '.0'
+        if _v_min.compare(_ver) <= 0:
+            _filtered_version.append(_v)
+        else:
+            logging.info('Found version %s, but skipped because older than %s ', _ver, _v_min)
+    return _filtered_version
 
 
 def version_combinations(pgadmin_versions, python_versions):
@@ -299,13 +311,13 @@ def save_latest_dockerfile(pgadmin_versions, distro=DEFAULT_DISTRO):
                 tmp_file.write(fileobj.read().decode("utf-8"))
 
 
-def main(distros, dry_run, debug):
+def main(distros, dry_run, debug, pgadmin_min_ver):
     # distros = list(set(distros + [DEFAULT_DISTRO]))
     current_versions = load_versions()
-    # Use latest patch version from each minor
+    # Use the latest patch version from each minor
     python_versions = decide_python_versions(distros)
-    # Use latest minor version from each major
-    pgadmin_versions = decide_pgadmin_versions()
+    # Use the latest minor version from each major
+    pgadmin_versions = decide_pgadmin_versions(pgadmin_min_ver)
     versions = version_combinations(pgadmin_versions, python_versions)
 
     # Build tag and release docker images
@@ -336,6 +348,12 @@ if __name__ == "__main__":
         "--dry-run", action="store_true", dest="dry_run", help="Skip persisting, README update, and pushing of builds"
     )
     parser.add_argument("--debug", action="store_true", help="Write generated dockerfiles to disk")
-
+    parser.add_argument(
+        "-m",
+        "--pgadmin-min-ver",
+        dest="pgadmin_min_ver",
+        help="Specify pgAdmin4 minimum version to be built.",
+        default="6.18.0",
+    )
     args = vars(parser.parse_args())
     main(**args)
