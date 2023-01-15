@@ -1,5 +1,6 @@
 import argparse
 import json
+import logging
 import os
 import re
 from datetime import datetime
@@ -29,6 +30,12 @@ todays_date = datetime.utcnow().date().isoformat()
 
 by_semver_key = cmp_to_key(semver.compare)
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s - %(filename)s:%(lineno)d]    %(message)s',
+    handlers=None,
+)
+
 
 def _latest_patch(tags, ver, patch_pattern, distro):
     tags = [tag for tag in tags if tag.startswith(ver) and tag.endswith(f"-{distro}") and patch_pattern.match(tag)]
@@ -56,7 +63,7 @@ def scrape_supported_pgadmin_versions():
                 continue
             if min_ver.lstrip('v') < '6.0':
                 continue
-            print(f"Found PgAdmin4 version: {min_ver}")
+            logging.info("Found PgAdmin4 version: %s", min_ver)
             versions.append({
                 "version_str": min_ver,
                 "version": min_ver.lstrip('v'),
@@ -85,7 +92,7 @@ def decide_python_versions(distros):
         for distro in distros:
             canonical_image = _latest_patch(tags, ver, python_wanted_tag_pattern, distro)
             if not canonical_image:
-                print(f"Not good. ver={ver} distro={distro} not in tags, skipping...")
+                logging.info("Not good. ver=%s distro=%s not in tags, skipping...", ver, distro)
                 continue
             canonical_version = canonical_image.replace(f"-{distro}", "")
             versions.append(
@@ -168,7 +175,7 @@ def build_new_or_updated(current_versions, versions, dry_run=False, debug=False)
             new_or_updated.append(ver)
 
     if not new_or_updated:
-        print("No new or updated versions")
+        logging.info("No new or updated versions")
         return
 
     # Login to docker hub
@@ -177,8 +184,8 @@ def build_new_or_updated(current_versions, versions, dry_run=False, debug=False)
     try:
         docker_client.login(dockerhub_username, os.getenv("DOCKERHUB_PASSWORD"))
     except docker.errors.APIError:
-        print(f"Could not login to docker hub with username:'{dockerhub_username}'.")
-        print("Is env var DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD set correctly?")
+        logging.error("Could not login to docker hub with username: %s", dockerhub_username)
+        logging.error("Is env var DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD set correctly?")
         exit(1)
 
     # Build, tag and push images
@@ -194,10 +201,9 @@ def build_new_or_updated(current_versions, versions, dry_run=False, debug=False)
             tag = f"{DOCKER_IMAGE_NAME}:{version['key']}"
             pgadmin_version = version["pgadmin"]
             python_version = version["python_canonical"]
-            print(
-                f"Building image {version['key']} pgadmin: {pgadmin_version} python: {python_version} ...",
-                end="",
-                flush=True,
+            logging.info(
+                "Building image %s pgadmin: %s python: %s ...",
+                version['key'], pgadmin_version, python_version
             )
             try:
                 if not dry_run:
@@ -210,7 +216,7 @@ def build_new_or_updated(current_versions, versions, dry_run=False, debug=False)
                 if debug:
                     with Path(f"debug-{version['key']}.Dockerfile").open("w") as debug_file:
                         debug_file.write(fileobj.read().decode("utf-8"))
-                print(f" pushing...", flush=True)
+                logging.info(" pushing...")
                 if not dry_run:
                     retries = 3
                     while retries > 0:
@@ -218,11 +224,11 @@ def build_new_or_updated(current_versions, versions, dry_run=False, debug=False)
                             docker_client.images.push(DOCKER_IMAGE_NAME, version["key"])
                             retries = 0
                         except requests.exceptions.ConnectionError as e:
-                            print(e)
+                            logging.warning(e)
                             retries -= 1
-                            print(f"Retrying... {retries} retries left")
+                            logging.warning("Retrying... %s retries left", retries)
             except docker.errors.BuildError as e:
-                print(f"Failed building {version}, skipping...")
+                logging.error("Failed building %s, skipping...", version)
                 failed_builds.append(version)
     return failed_builds
 
