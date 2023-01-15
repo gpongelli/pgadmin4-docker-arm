@@ -308,11 +308,12 @@ def main(distros, dry_run, debug):
     pgadmin_versions = decide_pgadmin_versions()
     versions = version_combinations(pgadmin_versions, python_versions)
 
-    persist_versions(versions, dry_run)
-    update_readme_tags_table(versions, dry_run)
-
     # Build tag and release docker images
     failed_builds = build_new_or_updated(current_versions, versions, dry_run, debug)
+
+    # persist image data after build ended
+    persist_versions(versions, dry_run)
+    update_readme_tags_table(versions, dry_run)
     save_latest_dockerfile(pgadmin_versions)
 
     # FIXME(perf): Generate a CircleCI config file with a workflow (parallell) and trigger this workflow via the API.
