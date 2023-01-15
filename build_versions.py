@@ -76,18 +76,25 @@ def scrape_supported_pgadmin_versions():
     return versions
 
 
-def decide_python_versions(distros):
+def decide_python_versions(distros, python_min_ver):
     python_patch_re = "|".join([r"^(\d+\.\d+\.\d+-{})$".format(distro) for distro in distros])
     python_wanted_tag_pattern = re.compile(python_patch_re)
 
     # Skip unreleased and unsupported
     _python_versions = get_active_python_versions(docker_images=True)
     supported_versions = [v for v in _python_versions if v["start"] <= todays_date <= v["end"]]
-    _lt = list(chain(*map(lambda x: x['docker_images'], supported_versions)))
+
+    # version must contain three numbers
+    if len(python_min_ver.split('.')) == 2:
+        python_min_ver = python_min_ver + '.0'
+    _v_min = semver.VersionInfo.parse(python_min_ver)
+    filtered_versions = [v for v in supported_versions if _v_min.compare(v["latest_sw"]) <= 0]
+
+    _lt = list(chain(*map(lambda x: x['docker_images'], filtered_versions)))
     tags = [tag for tag in _lt if python_wanted_tag_pattern.match(tag)]
 
     versions = []
-    for supported_version in supported_versions:
+    for supported_version in filtered_versions:
         ver = supported_version["version"]
         for distro in distros:
             canonical_image = _latest_patch(tags, ver, python_wanted_tag_pattern, distro)
@@ -293,11 +300,11 @@ def update_readme_tags_table(versions, dry_run=False):
             fp.write(readme_new)
 
 
-def save_latest_dockerfile(pgadmin_versions, distro=DEFAULT_DISTRO):
+def save_latest_dockerfile(pgadmin_versions, python_min_ver, distro=DEFAULT_DISTRO):
     # take template and render Dockerfile for latest version
     
-    # take latest python version
-    python_version = decide_python_versions([distro])[0]
+    # take the latest python version
+    python_version = decide_python_versions([distro], python_min_ver)[0]
     # tkae latest pgAdmin version
     pgadmin_version = pgadmin_versions[0]
 
@@ -311,11 +318,11 @@ def save_latest_dockerfile(pgadmin_versions, distro=DEFAULT_DISTRO):
                 tmp_file.write(fileobj.read().decode("utf-8"))
 
 
-def main(distros, dry_run, debug, pgadmin_min_ver):
+def main(distros, dry_run, debug, pgadmin_min_ver, python_min_ver):
     # distros = list(set(distros + [DEFAULT_DISTRO]))
     current_versions = load_versions()
     # Use the latest patch version from each minor
-    python_versions = decide_python_versions(distros)
+    python_versions = decide_python_versions(distros, python_min_ver)
     # Use the latest minor version from each major
     pgadmin_versions = decide_pgadmin_versions(pgadmin_min_ver)
     versions = version_combinations(pgadmin_versions, python_versions)
@@ -326,7 +333,7 @@ def main(distros, dry_run, debug, pgadmin_min_ver):
     # persist image data after build ended
     persist_versions(versions, dry_run)
     update_readme_tags_table(versions, dry_run)
-    save_latest_dockerfile(pgadmin_versions)
+    save_latest_dockerfile(pgadmin_versions, python_min_ver)
 
     # FIXME(perf): Generate a CircleCI config file with a workflow (parallell) and trigger this workflow via the API.
     # Ref: https://circleci.com/docs/2.0/api-job-trigger/
@@ -354,6 +361,13 @@ if __name__ == "__main__":
         dest="pgadmin_min_ver",
         help="Specify pgAdmin4 minimum version to be built.",
         default="6.18.0",
+    )
+    parser.add_argument(
+        "-p",
+        "--python-min-ver",
+        dest="python_min_ver",
+        help="Specify python minimum version to be used.",
+        default="3.11.0",
     )
     args = vars(parser.parse_args())
     main(**args)
