@@ -59,13 +59,10 @@ jobs:
       #  run: |
       #    poetry run python build_versions.py
 
-      - name: Docker Build & Push Action
-        uses: mr-smithers-excellent/docker-build-push@v5.8
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v3.3.0
         with:
-          image: gpongelli/pgadmin4-docker-armv7
-          tags: py3.10-alpine
-          registry: docker.io
-          dockerfile: dockerfile_py310_alpine
-          platform: linux/arm/v7
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          push: true
+          tags: gpongelli/pgadmin4-docker-armv7:py3.10-alpine
+          file: dockerfile_py310_alpine
+          platforms: linux/arm/v7
