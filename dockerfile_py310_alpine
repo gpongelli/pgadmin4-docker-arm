@@ -5,8 +5,7 @@ MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 RUN addgroup -g 50 -S pgadmin \
  && adduser -D -S -h /pgadmin -s /sbin/nologin -u 1000 -G pgadmin pgadmin \
  && mkdir -p /pgadmin/config /pgadmin/storage \
- && chown -R 1000:50 /pgadmin \
- && chown -R 1000:50 /var/lib/pgadmin
+ && chown -R 1000:50 /pgadmin
 
 # Install postgresql tools for backup/restore
 RUN apk add --no-cache libedit postgresql \
