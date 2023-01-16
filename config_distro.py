@@ -38,6 +38,8 @@ SERVER_MODE = False
 DEFAULT_SERVER = '0.0.0.0'
 DEFAULT_SERVER_PORT = int(os.getenv('PG_ADMIN_PORT', 5050))
 
+# for CSRF warnings
+PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION = "False"
 
 ##########################################################################
 # User account and settings storage
