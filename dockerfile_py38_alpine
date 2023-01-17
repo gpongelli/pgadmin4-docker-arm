@@ -1,4 +1,6 @@
-FROM python:3.8-alpine
+FROM python:3.8-alpine3.16
+#  alpine3.16 uses openss1.1.1  https://github.com/pyca/cryptography/issues/7868 , alpine 3.17 uses openssl 3.0.x that
+#   raises ImportError with FIPS_mode
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
 # create a non-privileged user to use at runtime
