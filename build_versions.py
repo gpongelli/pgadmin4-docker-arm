@@ -21,9 +21,9 @@ from python_active_versions.python_active_versions import get_active_python_vers
 DOCKER_IMAGE_NAME = "gpongelli/pgadmin4-docker-armv7"
 VERSIONS_PATH = Path("versions.json")
 DEFAULT_DISTRO = ""
-DISTROS = ["alpine"]
-DEFAULT_DISTROS = ["alpine"]
-DISTRO_TEMPLATE = {'alpine': 'raspberry'}
+DISTROS = ["alpine3.16"]
+DEFAULT_DISTROS = ["alpine3.16"]
+DISTRO_TEMPLATE = {'alpine3.16': 'raspberry'}
 
 todays_date = datetime.utcnow().date().isoformat()
 
