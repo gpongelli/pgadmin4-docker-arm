@@ -63,6 +63,6 @@ jobs:
         uses: docker/build-push-action@v3.3.0
         with:
           push: true
-          tags: gpongelli/pgadmin4-docker-armv7:py3.10-alpine
+          tags: gpongelli/pgadmin4-docker-armv7:py3.10-alpine3.16
           file: dockerfile_py310_alpine
           platforms: linux/arm/v7
