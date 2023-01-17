@@ -21,7 +21,7 @@ RUN apk add --no-cache tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms
     && apk add --no-cache postgresql-dev libffi-dev
 
 
-ENV PGADMIN_VERSION=6.18
+ENV PGADMIN_VERSION=6.19
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
