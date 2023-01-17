@@ -25,11 +25,14 @@ ENV PGADMIN_VERSION=6.18
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
+# dnspython==2.3.0 has issue with eventlet==0.33.0 (pgadmin4 has pinned eventlet version)
+#  https://github.com/eventlet/eventlet/issues/781   https://github.com/pgadmin-org/pgadmin4/issues/5744
+
 RUN apk add --no-cache alpine-sdk linux-headers \
  && pip install --upgrade pip \
- && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/pgadmin4-${PGADMIN_VERSION}-py3-none-any.whl" | pip install --no-cache-dir -r /dev/stdin \
  && pip install --no-cache-dir --upgrade Flask-WTF>=0.14.3 \
- && pip install Werkzeug>=2.2.2 simple-websocket \
+ && pip install --no-cache-dir Werkzeug>=2.2.2 simple-websocket dnspython==2.2.1 \
+ && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/pgadmin4-${PGADMIN_VERSION}-py3-none-any.whl" | pip install --no-cache-dir -r /dev/stdin \
  && apk del alpine-sdk linux-headers
 
 EXPOSE 5050
