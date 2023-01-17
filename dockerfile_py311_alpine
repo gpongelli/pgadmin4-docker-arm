@@ -15,9 +15,9 @@ RUN addgroup -g 50 -S pgadmin \
  && chown -R 1000:50 /pgadmin \
  && \
 # Install postgresql tools for backup/restore
- apk add --no-cache postgresql \
+ apk add --no-cache libedit postgresql \
  && cp /usr/bin/psql /usr/bin/pg_dump /usr/bin/pg_dumpall /usr/bin/pg_restore /usr/local/bin/ \
- && apk del libedit postgresql \
+ && apk del postgresql \
  && \
 # to compile pillow
  apk add --no-cache tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev \
