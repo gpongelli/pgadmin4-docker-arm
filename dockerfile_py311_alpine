@@ -15,7 +15,7 @@ RUN addgroup -g 50 -S pgadmin \
  && chown -R 1000:50 /pgadmin \
  && \
 # Install postgresql tools for backup/restore
- apk add --no-cache libedit postgresql \
+ apk add --no-cache postgresql \
  && cp /usr/bin/psql /usr/bin/pg_dump /usr/bin/pg_dumpall /usr/bin/pg_restore /usr/local/bin/ \
  && apk del libedit postgresql \
  && \
@@ -32,9 +32,7 @@ RUN addgroup -g 50 -S pgadmin \
  && pip install --no-cache-dir --upgrade Flask-WTF>=0.14.3 \
  && pip install --no-cache-dir Werkzeug>=2.2.2 simple-websocket dnspython==2.2.1 \
  && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/pgadmin4-${PGADMIN_VERSION}-py3-none-any.whl" | pip install --no-cache-dir -r /dev/stdin \
- && apk del alpine-sdk linux-headers tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev \
-    libwebp-dev tcl-dev tk-dev harfbuzz-dev fribidi-dev libimagequant-dev \
-    libxcb-dev libpng-dev postgresql-dev libffi-dev
+ && apk del alpine-sdk linux-headers
 
 EXPOSE 5050
 
