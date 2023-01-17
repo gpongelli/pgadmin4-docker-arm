@@ -1,15 +1,15 @@
 # python: %%PYTHON_CANONICAL%%
 # pgadmin: %%PGADMIN_CANONICAL%%
 FROM python:%%PYTHON_IMAGE%%
+#  alpine3.16 uses openss1.1.1  https://github.com/pyca/cryptography/issues/7868 , alpine 3.17 uses openssl 3.0.x that
+#   raises ImportError with FIPS_mode
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
 # create a non-privileged user to use at runtime
 RUN addgroup -g 50 -S pgadmin \
  && adduser -D -S -h /pgadmin -s /sbin/nologin -u 1000 -G pgadmin pgadmin \
  && mkdir -p /pgadmin/config /pgadmin/storage /var/log/pgadmin /var/lib/pgadmin \
- && chown -R 1000:50 /pgadmin \
- && chown -R 1000:50 /var/log/pgadmin \
- && chown -R 1000:50 /var/lib/pgadmin
+ && chown -R 1000:50 /pgadmin
 
 # Install postgresql tools for backup/restore
 RUN apk add --no-cache libedit postgresql \
@@ -17,20 +17,23 @@ RUN apk add --no-cache libedit postgresql \
  && apk del postgresql
 
 # Install packages to compile pillow on arm
-RUN apk add tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev \
+RUN apk add --no-cache tiff-dev jpeg-dev openjpeg-dev zlib-dev freetype-dev lcms2-dev \
     libwebp-dev tcl-dev tk-dev harfbuzz-dev fribidi-dev libimagequant-dev \
-    libxcb-dev libpng-dev
-
-RUN apk add --no-cache postgresql-dev libffi-dev
+    libxcb-dev libpng-dev \
+    && apk add --no-cache postgresql-dev libffi-dev
 
 ENV PGADMIN_VERSION=%%PGADMIN%%
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
+# dnspython==2.3.0 has issue with eventlet==0.33.0 (pgadmin4 has pinned eventlet version)
+#  https://github.com/eventlet/eventlet/issues/781   https://github.com/pgadmin-org/pgadmin4/issues/5744
+
 RUN apk add --no-cache alpine-sdk linux-headers \
  && pip install --upgrade pip \
- && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/%%PGADMIN_WHL%%" | pip install --no-cache-dir -r /dev/stdin \
  && pip install --no-cache-dir --upgrade Flask-WTF>=0.14.3 \
+ && pip install --no-cache-dir Werkzeug>=2.2.2 simple-websocket dnspython==2.2.1 \
+ && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/%%PGADMIN_WHL%%" | pip install --no-cache-dir -r /dev/stdin \
  && apk del alpine-sdk linux-headers
 
 EXPOSE 5050
