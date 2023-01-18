@@ -9,23 +9,23 @@ ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 # to compile pillow and the other python packages
 RUN apk add --no-cache \
-        && fribidi-dev \
-        && freetype-dev \
-        && harfbuzz-dev \
-        && lcms2-dev \
-        && libedit \
-        && libffi-dev \
-        && libimagequant-dev \
-        && libpng-dev \
-        && libwebp-dev \
-        && libxcb-dev \
-        && jpeg-dev \
-        && openjpeg-dev \
-        && postgresql-dev \
-        && tcl-dev \
-        && tiff-dev \
-        && tk-dev \
-        && zlib-dev
+        fribidi-dev \
+        freetype-dev \
+        harfbuzz-dev \
+        lcms2-dev \
+        libedit \
+        libffi-dev \
+        libimagequant-dev \
+        libpng-dev \
+        libwebp-dev \
+        libxcb-dev \
+        jpeg-dev \
+        openjpeg-dev \
+        postgresql-dev \
+        tcl-dev \
+        tiff-dev \
+        tk-dev \
+        zlib-dev
 
 # dnspython==2.3.0 has issue with eventlet==0.33.0 (pgadmin4 has pinned eventlet version)
 #  https://github.com/eventlet/eventlet/issues/781   https://github.com/pgadmin-org/pgadmin4/issues/5744
@@ -50,25 +50,25 @@ RUN addgroup -g 50 -S pgadmin \
  && mkdir -p /pgadmin/config /pgadmin/storage \
  && chown -R 1000:50 /pgadmin \
  && apk add \
-    && fribidi \
-    && freetype \
-    && harfbuzz \
-    && lcms2 \
-    && libedit \
-    && libffi \
-    && libimagequant \
-    && libpng \
-    && libpq \
-    && libstdc++ \
-    && libwebp \
-    && libxcb \
-    && jpeg \
-    && openjpeg \
-    && postgresql \
-    && tcl \
-    && tiff \
-    && tk \
-    && zlib
+    fribidi \
+    freetype \
+    harfbuzz \
+    lcms2 \
+    libedit \
+    libffi \
+    libimagequant \
+    libpng \
+    libpq \
+    libstdc++ \
+    libwebp \
+    libxcb \
+    jpeg \
+    openjpeg \
+    postgresql \
+    tcl \
+    tiff \
+    tk \
+    zlib
 
 
 EXPOSE 5050
