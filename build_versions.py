@@ -20,7 +20,7 @@ from python_active_versions.python_active_versions import get_active_python_vers
 
 DOCKER_IMAGE_NAME = "gpongelli/pgadmin4-docker-armv7"
 VERSIONS_PATH = Path("versions.json")
-DEFAULT_DISTRO = ""
+DEFAULT_DISTRO = "alpine3.16"
 DISTROS = ["alpine3.16"]
 DEFAULT_DISTROS = ["alpine3.16"]
 DISTRO_TEMPLATE = {'alpine3.16': 'raspberry'}
@@ -305,7 +305,7 @@ def save_latest_dockerfile(pgadmin_versions, python_min_ver, distro=DEFAULT_DIST
     
     # take the latest python version
     python_version = decide_python_versions([distro], python_min_ver)[0]
-    # tkae latest pgAdmin version
+    # take latest pgAdmin version
     pgadmin_version = pgadmin_versions[0]
 
     versions = version_combinations([pgadmin_version], [python_version])  # should be list of length 1; if invalid combination then length 0
