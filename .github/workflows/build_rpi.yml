@@ -39,6 +39,7 @@ jobs:
       # https://github.com/actions/setup-python
       - uses: actions/setup-python@v4
         with:
+          python-version: '3.10'
           cache: 'poetry'
 
       - name: Install dependencies
