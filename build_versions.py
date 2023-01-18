@@ -266,7 +266,7 @@ def update_readme_tags_table(versions, dry_run=False):
         _max = []
 
         for i in zip(*table):
-            _max.append(max(list(map(lambda x: len(x), i))))
+            _max.append(max(list(map(lambda x: len(x)+2, i))))
 
         return _max
 
