@@ -360,7 +360,7 @@ if __name__ == "__main__":
         "--pgadmin-min-ver",
         dest="pgadmin_min_ver",
         help="Specify pgAdmin4 minimum version to be built.",
-        default="6.18.0",
+        default="6.19.0",
     )
     parser.add_argument(
         "-p",
