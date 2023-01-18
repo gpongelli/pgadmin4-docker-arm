@@ -29,7 +29,7 @@ RUN apk add --no-cache \
 
 # dnspython==2.3.0 has issue with eventlet==0.33.0 (pgadmin4 has pinned eventlet version)
 #  https://github.com/eventlet/eventlet/issues/781   https://github.com/pgadmin-org/pgadmin4/issues/5744
- apk add --no-cache alpine-sdk linux-headers \
+RUN apk add --no-cache alpine-sdk linux-headers \
  && pip install --upgrade pip \
  && pip install --no-cache-dir --upgrade Flask-WTF>=0.14.3 \
  && pip install --no-cache-dir Werkzeug>=2.2.2 simple-websocket dnspython==2.2.1 \
