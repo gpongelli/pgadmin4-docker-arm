@@ -79,5 +79,8 @@ jobs:
           repository: gpongelli/pgadmin4-docker-armv7
 
       - name: add new version to git
+        with:
+          GH_NAME: ${{ secrets.GH_NAME }}
+          GH_EMAIL: ${{ secrets.GH_EMAIL }}
         run: |
           bash git_archive.sh
