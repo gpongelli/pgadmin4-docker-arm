@@ -181,7 +181,7 @@ def load_versions():
         return json.load(fp)["versions"]
 
 
-def build_new_or_updated(current_versions, versions, dry_run=False, debug=False):
+def get_new_versions(current_versions, versions):
     # Find new or updated
     current_versions = {ver["key"]: ver for ver in current_versions}
     versions = {ver["key"]: ver for ver in versions}
@@ -195,7 +195,10 @@ def build_new_or_updated(current_versions, versions, dry_run=False, debug=False)
 
     if not new_or_updated:
         logging.info("No new or updated versions")
-        return
+    return new_or_updated
+
+
+def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
 
     # Login to docker hub
     docker_client = docker.from_env()
@@ -327,13 +330,14 @@ def main(distros, dry_run, debug, pgadmin_min_ver, python_min_ver):
     pgadmin_versions = decide_pgadmin_versions(pgadmin_min_ver)
     versions = version_combinations(pgadmin_versions, python_versions)
 
-    # Build tag and release docker images
-    failed_builds = build_new_or_updated(current_versions, versions, dry_run, debug)
+    if new_versions := get_new_versions(current_versions, versions):
+        # Build tag and release docker images
+        failed_builds = build_new_or_updated(new_versions, dry_run, debug)
 
-    # persist image data after build ended
-    persist_versions(versions, dry_run)
-    update_readme_tags_table(versions, dry_run)
-    save_latest_dockerfile(pgadmin_versions, python_min_ver)
+        # persist image data after build ended
+        persist_versions(versions, dry_run)
+        update_readme_tags_table(versions, dry_run)
+        save_latest_dockerfile(pgadmin_versions, python_min_ver)
 
     # FIXME(perf): Generate a CircleCI config file with a workflow (parallell) and trigger this workflow via the API.
     # Ref: https://circleci.com/docs/2.0/api-job-trigger/
