@@ -34,15 +34,9 @@ Starting from that project, I've added the github actions to build docker image 
 ## Tags
 To use a specific combination of pgAdmin 4 and python see the following table of available image tags.
 
-|         Tag          | pgAdmin version | Python version | Distro | Architecture |
-|----------------------|-----------------|----------------|--------|--------------|
-| `6.18-py3.11-alpine` |      6.18       |     3.11.1     | alpine |    armv7     |
-| `6.18-py3.10-alpine` |      6.18       |     3.10.9     | alpine |    armv7     |
-| `6.18-py3.9-alpine`  |      6.18       |     3.9.16     | alpine |    armv7     |
-| `6.18-py3.8-alpine`  |      6.18       |     3.8.16     | alpine |    armv7     |
-| `6.18-py3.7-alpine`  |      6.18       |     3.7.16     | alpine |    armv7     |
-| `6.17-py3.11-alpine` |      6.17       |     3.11.1     | alpine |    armv7     |
-| `6.17-py3.10-alpine` |      6.17       |     3.10.9     | alpine |    armv7     |
+|       Tag       |  pgAdmin version  |  Python version  |   Distro   |  Architecture  |
+|-----------------|-------------------|------------------|------------|----------------|
+|  `6.19-py3.11`  |       6.19        |      3.11.1      | alpine3.16 |     armv7      |
 
 Lovely! These tags are kept updated automatically (when new minor or patch version are released) by `build_versions.py` which is run twice a day on CircleCI.
 

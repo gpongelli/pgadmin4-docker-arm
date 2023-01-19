@@ -1,0 +1,83 @@
+# python: 3.11.1
+# pgadmin: 6.19.0
+FROM python:3.11.1-alpine3.16 AS builder
+#  alpine3.16 uses openss1.1.1  https://github.com/pyca/cryptography/issues/7868 , alpine 3.17 uses openssl 3.0.x that
+#   raises ImportError with FIPS_mode
+MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
+
+ENV PGADMIN_VERSION=6.19
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
+
+# install packages to compile pillow and the other python packages on ARM
+RUN apk add --no-cache \
+        fribidi-dev \
+        freetype-dev \
+        harfbuzz-dev \
+        lcms2-dev \
+        libedit \
+        libffi-dev \
+        libimagequant-dev \
+        libpng-dev \
+        libwebp-dev \
+        libxcb-dev \
+        jpeg-dev \
+        openjpeg-dev \
+        postgresql-dev \
+        tcl-dev \
+        tiff-dev \
+        tk-dev \
+        zlib-dev
+
+# dnspython==2.3.0 has issue with eventlet==0.33.0 (pgadmin4 has pinned eventlet version)
+#  https://github.com/eventlet/eventlet/issues/781   https://github.com/pgadmin-org/pgadmin4/issues/5744
+RUN apk add --no-cache alpine-sdk linux-headers \
+ && pip install --upgrade pip \
+ && pip install --no-cache-dir --upgrade Flask-WTF>=0.14.3 \
+ && pip install --no-cache-dir Werkzeug>=2.2.2 simple-websocket dnspython==2.2.1 \
+ && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/pgadmin4-6.19-py3-none-any.whl" | pip install --no-cache-dir -r /dev/stdin \
+ && apk del alpine-sdk linux-headers
+
+##
+## -------------------------------------------
+##
+
+FROM python:3.11.1-alpine3.16 AS app
+MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
+
+# create a non-privileged user to use at runtime, install non-devel packages
+RUN addgroup -g 50 -S pgadmin \
+ && adduser -D -S -h /pgadmin -s /sbin/nologin -u 1000 -G pgadmin pgadmin \
+ && mkdir -p /pgadmin/config /pgadmin/storage \
+ && chown -R 1000:50 /pgadmin \
+ && apk add \
+    fribidi \
+    freetype \
+    harfbuzz \
+    lcms2 \
+    libedit \
+    libffi \
+    libimagequant \
+    libpng \
+    libpq \
+    libstdc++ \
+    libwebp \
+    libxcb \
+    jpeg \
+    openjpeg \
+    postgresql \
+    tcl \
+    tiff \
+    tk \
+    zlib
+
+
+EXPOSE 5050
+
+COPY --from=builder /usr/local/lib/python3.11/  /usr/local/lib/python3.11/
+
+COPY LICENSE config_distro.py /usr/local/lib/python3.11/site-packages/pgadmin4/
+
+USER pgadmin:pgadmin
+CMD python /usr/local/lib/python3.11/site-packages/pgadmin4/pgAdmin4.py
+VOLUME /pgadmin/
