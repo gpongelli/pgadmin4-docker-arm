@@ -2,7 +2,7 @@
 [![DockerBuild](https://img.shields.io/docker/cloud/build/gpongelli/pgadmin4-docker-armv7.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-docker-armv7/)
 
 
-Last updated by bot: 2022-08-26
+Last updated by bot: 2023-01-19
 
 # pgAdmin 4
 
