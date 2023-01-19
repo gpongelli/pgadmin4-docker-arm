@@ -17,7 +17,7 @@ on:
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -79,8 +79,8 @@ jobs:
           repository: gpongelli/pgadmin4-docker-armv7
 
       - name: add new version to git
-        env:
-          GH_NAME: ${{ secrets.GH_NAME }}
-          GH_EMAIL: ${{ secrets.GH_EMAIL }}
-        run: |
-          bash git_archive.sh
+        uses: EndBug/add-and-commit@v9.1.1
+        with:
+          add: 'versions.json README.md Dockerfile'
+          author_name: ${{ secrets.GH_NAME }}
+          author_email: ${{ secrets.GH_EMAIL }}
