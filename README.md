@@ -42,12 +42,31 @@ Lovely! These tags are kept updated automatically (when new minor or patch versi
 
 ## Example use
 
+### Docker compose example
+
+```bash
+version: '2'
+services:
+  pg_admin:
+    container_name: pgAdmin
+    image: gpongelli/pgadmin4-docker-armv7:6.19-py3.11
+    restart: unless-stopped
+    ports:
+      - 5050:5050
+    volumes:
+      - ./volumes/pg_admin/servers.json:/pgadmin4/servers.json
+    networks:
+      ...
+    environment:
+      ...
+```
+
 ### Quick start
 
 To see this image in action, run the following command;
 
 ```bash
-$ docker run --rm -p 5050:5050 thajeztah/pgadmin4
+$ docker run --rm -p 5050:5050 docker pull gpongelli/pgadmin4-docker-armv7:6.19-py3.11
 ```
 
 This starts a one-off container in non-detached mode, and container logs are
@@ -69,7 +88,7 @@ $ docker network create pg
 $ docker run -d -e POSTGRES_PASSWORD=password --network=pg --name postgres postgres:9-alpine
 
 # start pgAdmin container
-$ docker run -d -p 5050:5050 --name pgadmin --network=pg thajeztah/pgadmin4
+$ docker run -d -p 5050:5050 --name pgadmin --network=pg gpongelli/pgadmin4-docker-armv7:6.19-py3.11
 ```
 
 Now visit `http://[your-docker-host]:5050` in your browser. You can add the
@@ -101,7 +120,7 @@ storage
 For example, to bind-mount the `/Users/me/pgadmin` directory as storage directory;
 
 ```bash
-$ docker run -d -p 5050:5050 -v /Users/me/pgadmin:/pgadmin thajeztah/pgadmin4
+$ docker run -d -p 5050:5050 -v /Users/me/pgadmin:/pgadmin gpongelli/pgadmin4-docker-armv7:6.19-py3.11
 ```
 
 ## Run the image with a read-only filesystem
@@ -110,7 +129,7 @@ This image can be run with a read-only filesystem. To do so, specify the
 `--read-only` flag when starting the container.
 
 ```bash
-$ docker run -d -p 5050:5050 --name pgadmin --read-only thajeztah/pgadmin4
+$ docker run -d -p 5050:5050 --name pgadmin --read-only gpongelli/pgadmin4-docker-armv7:6.19-py3.11
 ```
 
 ## Runtime configuration
@@ -130,4 +149,4 @@ More information on pgAdmin 4 development can be found here;
 ## Reporting issues and feature requests
 
 Issues and feature requests can be reported on GitHub;
-https://github.com/thaJeztah/pgadmin4-docker
+https://github.com/gpongelli/pgadmin4-docker-armv7
