@@ -54,7 +54,7 @@ services:
     ports:
       - 5050:5050
     volumes:
-      - ./volumes/pg_admin/servers.json:/pgadmin4/servers.json
+      - ./volumes/pg_admin/servers.json:/pgadmin/servers.json
     networks:
       ...
     environment:
