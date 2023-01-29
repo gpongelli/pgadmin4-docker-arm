@@ -24,6 +24,8 @@ DEFAULT_DISTRO = "alpine3.16"
 DISTROS = ["alpine3.16"]
 DEFAULT_DISTROS = ["alpine3.16"]
 DISTRO_TEMPLATE = {'alpine3.16': 'raspberry'}
+ARCHS = {'armv7': 'linux/arm/v7', 'armv8': 'linux/arm64'}
+
 
 todays_date = datetime.utcnow().date().isoformat()
 
@@ -135,20 +137,23 @@ def version_combinations(pgadmin_versions, python_versions):
         for pg in pgadmin_versions:
             if pg["release_date"] < p["start_date"] or pg["release_date"] > p["end_date"]:
                 continue
-            distro = f'-{p["distro"]}' if p["distro"] != DEFAULT_DISTRO else ""
-            key = f'{pg["version"]}-py{p["key"]}{distro}'
-            versions.append(
-                {
-                    "key": key,
-                    "python": p["key"],
-                    "python_canonical": p["canonical_version"],
-                    "python_image": p["image"],
-                    "pgadmin": pg["version"],
-                    "pgadmin_canonical": pg["version"]+".0",
-                    "pgadmin_whl": pg["file_whl"],
-                    "distro": p["distro"],
-                }
-            )
+            for _a, _d in ARCHS.items():
+                distro = f'-{p["distro"]}' if p["distro"] != DEFAULT_DISTRO else ""
+                key = f'{pg["version"]}-py{p["key"]}{distro}-{_a}'
+                versions.append(
+                    {
+                        "key": key,
+                        "python": p["key"],
+                        "python_canonical": p["canonical_version"],
+                        "python_image": p["image"],
+                        "pgadmin": pg["version"],
+                        "pgadmin_canonical": pg["version"]+".0",
+                        "pgadmin_whl": pg["file_whl"],
+                        "distro": p["distro"],
+                        "arch": _a,
+                        "docker_arch": _d,
+                    }
+                )
 
     versions = sorted(versions, key=lambda v: DISTROS.index(v["distro"]))
     versions = sorted(versions, key=lambda v: by_semver_key(v["python_canonical"]), reverse=True)
@@ -224,8 +229,8 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
             pgadmin_version = version["pgadmin"]
             python_version = version["python_canonical"]
             logging.info(
-                "Building image %s pgadmin: %s python: %s ...",
-                version['key'], pgadmin_version, python_version
+                "Building image %s pgadmin: %s python: %s for %s ...",
+                version['key'], pgadmin_version, python_version, version['arch']
             )
             try:
                 if not dry_run:
@@ -233,10 +238,10 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
                                                dockerfile="tmp.Dockerfile",
                                                tag=tag,
                                                rm=True,
-                                               platform='linux/arm/v7',
+                                               platform=version['docker_arch'],
                                                pull=True)
                 if debug:
-                    with Path(f"debug-{version['key']}.Dockerfile").open("w") as debug_file:
+                    with Path(f"debug-{version['key']}-{version['arch']}.Dockerfile").open("w") as debug_file:
                         debug_file.write(fileobj.read().decode("utf-8"))
                 logging.info(" pushing...")
                 if not dry_run:
@@ -265,7 +270,7 @@ def update_readme_tags_table(versions, dry_run=False):
     def length_calc():
         table = [headings]
         for v in versions:
-            table.append([f" `{v['key']}` ", v["pgadmin"], v["python_canonical"], f"{v['distro']}", "armv7"])
+            table.append([f" `{v['key']}` ", v["pgadmin"], v["python_canonical"], f"{v['distro']}", f"{v['arch']}"])
         _max = []
 
         for i in zip(*table):
@@ -279,14 +284,13 @@ def update_readme_tags_table(versions, dry_run=False):
         headings[h] = f"{headings[h]:^{_widhts[h]}}"
 
     rows = []
-    _architecture = 'armv7'
     for v in versions:
         _tmp_key = f" `{v['key']}` "
         rows.append([f"|{_tmp_key:^{_widhts[0]}}",
                      f"{v['pgadmin']:^{_widhts[1]}}",
                      f"{v['python_canonical']:^{_widhts[2]}}",
                      f"{v['distro']:^{_widhts[3]}}",
-                     f"{_architecture:^{_widhts[4]}}|"])
+                     f"{v['arch']:^{_widhts[4]}}|"])
 
     _sep = '-'
     head = f"|{'|'.join(headings)}|\n|{'|'.join([f'{_sep:-^{_widhts[h]}}' for h in range(0, len(headings))])}|"
