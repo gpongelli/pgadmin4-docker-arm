@@ -27,10 +27,15 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-22.04
 
+    outputs:
+      cmt_msg: ""
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_PAT_TOKEN }}
 
       # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#caching-packages
       - name: Install Poetry
@@ -78,9 +83,24 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           repository: gpongelli/pgadmin4-docker-armv7
 
+      - name: Get Date
+        id: get_date
+        uses: Kaven-Universe/github-action-current-date-time@v1
+        with:
+          format: "YYYY_MM_DD"
+
+      - name: Setting global variables
+        uses: actions/github-script@v6
+        id: set_cmt_message
+        with:
+          script: |
+            core.setOutput('cmt_msg', '[ci skip] Cron execution on ${{ steps.get_date.outputs.year }}-${{ steps.get_date.outputs.month }}-${{ steps.get_date.outputs.day }}');
+
       - name: add new version to git
         uses: EndBug/add-and-commit@v9.1.1
         with:
           add: 'versions.json README.md Dockerfile'
           author_name: ${{ secrets.GH_NAME }}
           author_email: ${{ secrets.GH_EMAIL }}
+          message: ${{ steps.set_cmt_message.outputs.cmt_msg }}
+          push: 'origin main --force'
