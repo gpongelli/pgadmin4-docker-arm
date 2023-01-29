@@ -14,6 +14,7 @@ import docker.errors
 import requests
 import semver
 
+from concurrent.futures import ThreadPoolExecutor
 from requests_html import HTMLSession
 from python_active_versions.python_active_versions import get_active_python_versions
 
@@ -52,10 +53,10 @@ def scrape_supported_pgadmin_versions():
     r = HTMLSession().get(base_url)
     version_table = r.html.find(version_table_selector, first=True)
 
-    for ver in version_table.find("tr"):
+    def worker(ver):
         min_ver, = [v.text for v in ver.find("td")]
         if not min_ver.startswith('v'):  
-            continue
+            return
         # dig deeper
         r_detail = HTMLSession().get(f'{base_url}/{min_ver}/pip')
         detail_table = r_detail.html.find(detail_table_selector, first=True)
@@ -74,6 +75,9 @@ def scrape_supported_pgadmin_versions():
                 "release_date": release_date,
                 "file_size": file_size
             })
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        executor.map(worker, version_table.find("tr"))
 
     return versions
 
@@ -217,12 +221,13 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
 
     # Build, tag and push images
     failed_builds = []
-    for version in new_or_updated:
+
+    def build_image(version):
         dockerfile = render_dockerfile(version)
         # docker build wants bytes
         with BytesIO(dockerfile.encode()) as fileobj:
             # save dockerfile to disk for building from path
-            with Path(f"tmp.Dockerfile").open("w") as tmp_file:
+            with Path(f"tmp.Dockerfile-{version['key']}").open("w") as tmp_file:
                 tmp_file.write(fileobj.read().decode("utf-8"))
             
             tag = f"{DOCKER_IMAGE_NAME}:{version['key']}"
@@ -243,7 +248,9 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
                 if debug:
                     with Path(f"debug-{version['key']}-{version['arch']}.Dockerfile").open("w") as debug_file:
                         debug_file.write(fileobj.read().decode("utf-8"))
-                logging.info(" pushing...")
+                logging.info(" pushing image %s pgadmin: %s python: %s for %s ...",
+                             version['key'], pgadmin_version, python_version, version['arch']
+                             )
                 if not dry_run:
                     retries = 3
                     while retries > 0:
@@ -257,6 +264,10 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
             except docker.errors.BuildError as e:
                 logging.error("Failed building %s, skipping...", version)
                 failed_builds.append(version)
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        executor.map(build_image, new_or_updated)
+
     return failed_builds
 
 
