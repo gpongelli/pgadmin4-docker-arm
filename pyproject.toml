@@ -21,7 +21,7 @@
         requests-html = "^0.10.0"
         semver = "^2.13.0"
         docker = "^6.0.1"
-        python-active-versions = "^1.1.0"
+        python-active-versions = "^1.2.0"
 
     [tool.poetry.group.devel]
         optional = true
