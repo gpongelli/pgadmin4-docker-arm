@@ -18,7 +18,7 @@ from requests_html import HTMLSession
 from python_active_versions.python_active_versions import get_active_python_versions
 
 
-DOCKER_IMAGE_NAME = "gpongelli/pgadmin4-docker-armv7"
+DOCKER_IMAGE_NAME = "gpongelli/pgadmin4-arm"
 VERSIONS_PATH = Path("versions.json")
 DEFAULT_DISTRO = "alpine3.16"
 DISTROS = ["alpine3.16"]
