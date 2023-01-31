@@ -81,7 +81,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-          repository: gpongelli/pgadmin4-docker-armv7
+          repository: gpongelli/pgadmin4-arm
 
       - name: Get Date
         id: get_date
