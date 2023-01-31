@@ -141,23 +141,22 @@ def version_combinations(pgadmin_versions, python_versions):
         for pg in pgadmin_versions:
             if pg["release_date"] < p["start_date"] or pg["release_date"] > p["end_date"]:
                 continue
-            for _a, _d in ARCHS.items():
-                distro = f'-{p["distro"]}' if p["distro"] != DEFAULT_DISTRO else ""
-                key = f'{pg["version"]}-py{p["key"]}{distro}-{_a}'
-                versions.append(
-                    {
-                        "key": key,
-                        "python": p["key"],
-                        "python_canonical": p["canonical_version"],
-                        "python_image": p["image"],
-                        "pgadmin": pg["version"],
-                        "pgadmin_canonical": pg["version"]+".0",
-                        "pgadmin_whl": pg["file_whl"],
-                        "distro": p["distro"],
-                        "arch": _a,
-                        "docker_arch": _d,
-                    }
-                )
+            distro = f'-{p["distro"]}' if p["distro"] != DEFAULT_DISTRO else ""
+            key = f'{pg["version"]}-py{p["key"]}{distro}'
+            versions.append(
+                {
+                    "key": key,
+                    "python": p["key"],
+                    "python_canonical": p["canonical_version"],
+                    "python_image": p["image"],
+                    "pgadmin": pg["version"],
+                    "pgadmin_canonical": pg["version"]+".0",
+                    "pgadmin_whl": pg["file_whl"],
+                    "distro": p["distro"],
+                    "arch": ','.join(ARCHS.keys()),
+                    "docker_arch": ','.join(ARCHS.values()),
+                }
+            )
 
     versions = sorted(versions, key=lambda v: DISTROS.index(v["distro"]))
     versions = sorted(versions, key=lambda v: by_semver_key(v["python_canonical"]), reverse=True)
@@ -223,11 +222,12 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
     failed_builds = []
 
     def build_image(version):
+        _file_suffix = f"{version['key']}-{str(version['arch']).replace(',' ,'_')}"
         dockerfile = render_dockerfile(version)
         # docker build wants bytes
         with BytesIO(dockerfile.encode()) as fileobj:
             # save dockerfile to disk for building from path
-            with Path(f"tmp.Dockerfile-{version['key']}").open("w") as tmp_file:
+            with Path(f"tmp.Dockerfile-{_file_suffix}").open("w") as tmp_file:
                 tmp_file.write(fileobj.read().decode("utf-8"))
             
             tag = f"{DOCKER_IMAGE_NAME}:{version['key']}"
@@ -246,7 +246,7 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
                                                platform=version['docker_arch'],
                                                pull=True)
                 if debug:
-                    with Path(f"debug-{version['key']}-{version['arch']}.Dockerfile").open("w") as debug_file:
+                    with Path(f"debug-{_file_suffix}.Dockerfile").open("w") as debug_file:
                         debug_file.write(fileobj.read().decode("utf-8"))
                 logging.info(" pushing image %s pgadmin: %s python: %s for %s ...",
                              version['key'], pgadmin_version, python_version, version['arch']
