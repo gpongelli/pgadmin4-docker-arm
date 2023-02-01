@@ -240,7 +240,7 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
             try:
                 if not dry_run:
                     docker_client.images.build(path=os.getcwd(),
-                                               dockerfile="tmp.Dockerfile",
+                                               dockerfile=f"tmp.Dockerfile-{_file_suffix}",
                                                tag=tag,
                                                rm=True,
                                                platform=version['docker_arch'],
@@ -263,6 +263,7 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
                             logging.warning("Retrying... %s retries left", retries)
             except docker.errors.BuildError as e:
                 logging.error("Failed building %s, skipping...", version)
+                logging.error(e)
                 failed_builds.append(version)
 
     with ThreadPoolExecutor(max_workers=4) as executor:
@@ -349,10 +350,13 @@ def main(distros, dry_run, debug, pgadmin_min_ver, python_min_ver):
         # Build tag and release docker images
         failed_builds = build_new_or_updated(new_versions, dry_run, debug)
 
-        # persist image data after build ended
-        persist_versions(versions, dry_run)
-        update_readme_tags_table(versions, dry_run)
-        save_latest_dockerfile(pgadmin_versions, python_min_ver)
+        success_builds = [v for v in versions for f in failed_builds if v != f]
+
+        if success_builds:
+            # persist image data after build ended
+            persist_versions(success_builds, dry_run)
+            update_readme_tags_table(success_builds, dry_run)
+            save_latest_dockerfile(pgadmin_versions, python_min_ver)
 
     # FIXME(perf): Generate a CircleCI config file with a workflow (parallell) and trigger this workflow via the API.
     # Ref: https://circleci.com/docs/2.0/api-job-trigger/
