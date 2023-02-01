@@ -46,10 +46,10 @@ FROM python:%%PYTHON_IMAGE%% AS app
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
 # create a non-privileged user to use at runtime, install non-devel packages
-RUN addgroup -g 50 -S pgadmin \
- && adduser -D -S -h /pgadmin -s /sbin/nologin -u 1000 -G pgadmin pgadmin \
- && mkdir -p /pgadmin/config /pgadmin/storage \
- && chown -R 1000:50 /pgadmin \
+RUN mkdir -p /pgadmin4/config /pgadmin4/storage \
+ && adduser -D -S -h /pgadmin4 -s /sbin/nologin -u 1000 pgadmin4 \
+ && chown -R pgadmin4:root /pgadmin4 \
+ && chmod -R g+rwX /pgadmin4 \
  && apk add \
     fribidi \
     freetype \
@@ -74,10 +74,11 @@ RUN addgroup -g 50 -S pgadmin \
 
 EXPOSE 5050
 
+VOLUME /pgadmin4/
+
 COPY --from=builder /usr/local/lib/python%%PYTHON%%/  /usr/local/lib/python%%PYTHON%%/
 
 COPY LICENSE config_distro.py /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/
 
-USER pgadmin:pgadmin
+USER pgadmin4
 CMD python /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/pgAdmin4.py
-VOLUME /pgadmin/
