@@ -208,7 +208,7 @@ def get_new_versions(current_versions, versions):
 
 def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
 
-    # Login to docker hub
+    # Login to docker hub, docker client app on host MUST be running
     docker_client = docker.from_env()
     dockerhub_username = os.getenv("DOCKERHUB_USERNAME")
     try:
