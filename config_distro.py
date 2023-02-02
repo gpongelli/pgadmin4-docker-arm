@@ -17,7 +17,7 @@ from logging import *
 
 # Data directory for storage of config settings etc. This shouldn't normally
 # need to be changed - it's here as various other settings depend on it.
-DATA_DIR = os.getenv('PG_ADMIN_DATA_DIR', '/pgadmin/')
+DATA_DIR = os.getenv('PG_ADMIN_DATA_DIR', '/pgadmin4/')
 
 
 ##########################################################################
