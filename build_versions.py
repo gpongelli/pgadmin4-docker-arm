@@ -350,8 +350,7 @@ def main(distros, dry_run, debug, pgadmin_min_ver, python_min_ver):
     if new_versions := get_new_versions(current_versions, versions):
         # Build tag and release docker images
         failed_builds = build_new_or_updated(new_versions, dry_run, debug)
-
-        success_builds = [v for v in versions for f in failed_builds if v != f]
+        success_builds = [v for v in versions if v not in failed_builds]
 
         if success_builds:
             # persist image data after build ended
