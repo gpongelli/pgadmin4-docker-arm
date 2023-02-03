@@ -71,6 +71,10 @@ RUN mkdir -p /pgadmin4/config /pgadmin4/storage \
     tk \
     zlib
 
+# install gosu for a better su+exec command
+RUN wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/%%GOSU_VERSION%%/gosu-%%GOSU_ARCH%%" \
+ && chmod +x /usr/local/bin/gosu \
+ && gosu nobody true
 
 EXPOSE 5050
 

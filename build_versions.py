@@ -27,6 +27,11 @@ DEFAULT_DISTROS = ["alpine3.16"]
 DISTRO_TEMPLATE = {'alpine3.16': 'raspberry'}
 ARCHS = {'armv7': 'linux/arm/v7', 'armv8': 'linux/arm64'}
 
+# same keys of ARCHS used to download gosu tool
+# https://github.com/tianon/gosu/releases
+GOSU_ARCH = {'armv7': 'armhf', 'armv8': 'arm64'}
+GOSU_VERSION = "1.16"
+
 
 todays_date = datetime.utcnow().date().isoformat()
 
@@ -156,6 +161,8 @@ def version_combinations(pgadmin_versions, python_versions):
                         "distro": p["distro"],
                         "arch": _a,
                         "docker_arch": _d,
+                        "gosu_arch": GOSU_ARCH[_a],
+                        "gosu_version": GOSU_VERSION,
                     }
                 )
 
