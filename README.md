@@ -1,5 +1,4 @@
-[![Pulls](https://img.shields.io/docker/pulls/gpongelli/pgadmin4-docker-armv7.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-docker-armv7/)
-[![DockerBuild](https://img.shields.io/docker/cloud/build/gpongelli/pgadmin4-docker-armv7.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-docker-armv7/)
+[![Pulls](https://img.shields.io/docker/pulls/gpongelli/pgadmin4-arm.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-docker-armv7/)
 
 
 Last updated by bot: 2023-01-19
