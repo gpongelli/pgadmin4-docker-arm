@@ -45,10 +45,14 @@ RUN apk add --no-cache alpine-sdk linux-headers \
 FROM python:%%PYTHON_IMAGE%% AS app
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
+# switch to root, let the entrypoint drop back to pgadmin4
+USER root
+
 # create a non-privileged user to use at runtime, install non-devel packages
-RUN mkdir -p /pgadmin4/config /pgadmin4/storage \
- && adduser -D -S -h /pgadmin4 -s /sbin/nologin -u 1000 pgadmin4 \
- && chown -R pgadmin4:root /pgadmin4 \
+RUN addgroup -g 50 -S pgadmin4 \
+ && adduser -D -S -h /pgadmin4 -s /sbin/nologin -u 1000 -G pgadmin4 pgadmin4 \
+ && mkdir -p /pgadmin4/config /pgadmin4/storage \
+ && chown -R pgadmin4:pgadmin4 /pgadmin4 \
  && chmod -R g+rwX /pgadmin4 \
  && apk add \
     fribidi \
@@ -83,6 +87,14 @@ VOLUME /pgadmin4/
 COPY --from=builder /usr/local/lib/python%%PYTHON%%/  /usr/local/lib/python%%PYTHON%%/
 
 COPY LICENSE config_distro.py /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/
+COPY entrypoint.sh /pgadmin4/
+RUN chmod a+x /pgadmin4/entrypoint.sh
 
-USER pgadmin4
+# using exec form to run also CMD into the entrypoint.
+# shell form will ignore CMD or docker run command line arguments
+# ref https://docs.docker.com/engine/reference/builder/#shell-form-entrypoint-example
+ENTRYPOINT ["/pgadmin4/entrypoint.sh"]
+
+# https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact
+# shell form does variable expansion/substitution
 CMD python /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/pgAdmin4.py
