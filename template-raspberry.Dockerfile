@@ -87,13 +87,18 @@ VOLUME /pgadmin4/
 COPY --from=builder /usr/local/lib/python%%PYTHON%%/  /usr/local/lib/python%%PYTHON%%/
 
 COPY LICENSE config_distro.py /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/
-COPY entrypoint.sh /pgadmin4/
-RUN chmod a+x /pgadmin4/entrypoint.sh
+
+# add an entry-point script
+ENV ENTRY_POINT="entrypoint.sh"
+COPY ${ENTRY_POINT} /${ENTRY_POINT}
+RUN chmod 755 /${ENTRY_POINT}
+ENV ENTRY_POINT=
+
 
 # using exec form to run also CMD into the entrypoint.
 # shell form will ignore CMD or docker run command line arguments
 # ref https://docs.docker.com/engine/reference/builder/#shell-form-entrypoint-example
-ENTRYPOINT ["/pgadmin4/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact
 # shell form does variable expansion/substitution
