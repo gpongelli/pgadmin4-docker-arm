@@ -1,4 +1,32 @@
 {
   "versions": [
+    {
+      "key": "6.19-py3.11-armv7",
+      "python": "3.11",
+      "python_canonical": "3.11.1",
+      "python_image": "3.11.1-alpine3.16",
+      "pgadmin": "6.19",
+      "pgadmin_canonical": "6.19.0",
+      "pgadmin_whl": "pgadmin4-6.19-py3-none-any.whl",
+      "distro": "alpine3.16",
+      "arch": "armv7",
+      "docker_arch": "linux/arm/v7",
+      "gosu_arch": "armhf",
+      "gosu_version": "1.16"
+    },
+    {
+      "key": "6.19-py3.11-armv8",
+      "python": "3.11",
+      "python_canonical": "3.11.1",
+      "python_image": "3.11.1-alpine3.16",
+      "pgadmin": "6.19",
+      "pgadmin_canonical": "6.19.0",
+      "pgadmin_whl": "pgadmin4-6.19-py3-none-any.whl",
+      "distro": "alpine3.16",
+      "arch": "armv8",
+      "docker_arch": "linux/arm64",
+      "gosu_arch": "arm64",
+      "gosu_version": "1.16"
+    }
   ]
 }
