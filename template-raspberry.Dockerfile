@@ -54,6 +54,7 @@ RUN addgroup -g 50 -S pgadmin4 \
  && mkdir -p /pgadmin4/config /pgadmin4/storage \
  && chown -R pgadmin4:pgadmin4 /pgadmin4 \
  && chmod -R g+rwX /pgadmin4 \
+ && addgroup pgadmin4 tty \
  && apk add \
     fribidi \
     freetype \
@@ -76,9 +77,33 @@ RUN addgroup -g 50 -S pgadmin4 \
     zlib
 
 # install gosu for a better su+exec command
-RUN wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/%%GOSU_VERSION%%/gosu-%%GOSU_ARCH%%" \
- && chmod +x /usr/local/bin/gosu \
- && gosu nobody true
+ENV GOSU_VERSION 1.16
+RUN set -eux; \
+	\
+	apk add --no-cache --virtual .gosu-deps \
+		ca-certificates \
+		dpkg \
+		gnupg \
+	; \
+	\
+	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+	\
+# verify the signature
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+	command -v gpgconf && gpgconf --kill all || :; \
+	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+	\
+# clean up fetch dependencies
+	apk del --no-network .gosu-deps; \
+	\
+	chmod +x /usr/local/bin/gosu; \
+# verify that the binary works
+	gosu --version; \
+	gosu nobody true
 
 EXPOSE 5050
 
@@ -94,6 +119,8 @@ COPY ${ENTRY_POINT} /${ENTRY_POINT}
 RUN chmod 755 /${ENTRY_POINT}
 ENV ENTRY_POINT=
 
+# run as pgadmin4
+USER pgadmin4
 
 # using exec form to run also CMD into the entrypoint.
 # shell form will ignore CMD or docker run command line arguments
@@ -101,5 +128,6 @@ ENV ENTRY_POINT=
 ENTRYPOINT ["/entrypoint.sh"]
 
 # https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact
-# shell form does variable expansion/substitution
-CMD python /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/pgAdmin4.py
+# the exec form works correctly when launching with user: 0 and without it
+# the shell form does starting loop if launched as pgadmin4 user
+CMD ["python", "/usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/pgAdmin4.py"]

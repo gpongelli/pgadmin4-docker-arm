@@ -11,6 +11,10 @@ export HOME=/pgadmin4
 PUID=${PUID:-1000}
 PGID=${PGID:-50}
 
+# beign able to write to /dev/stdout not only by root user
+# https://github.com/moby/moby/issues/31243
+chmod o+w /dev/stdout
+
 # enforce ownership if running as root
 user="$(id -u)"
 if [ "$user" = '0' ]; then
