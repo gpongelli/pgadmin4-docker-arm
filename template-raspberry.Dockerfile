@@ -50,11 +50,13 @@ USER root
 
 # create a non-privileged user to use at runtime, install non-devel packages
 RUN addgroup -g 50 -S pgadmin4 \
- && adduser -D -S -h /pgadmin4 -s /sbin/nologin -u 1000 -G pgadmin4 pgadmin4 \
+ && adduser -D -S -h /var/lib/pgadmin -s /sbin/nologin -u 1000 -G pgadmin4 pgadmin4 \
+ && chown -R pgadmin4:pgadmin4 /var/lib/pgadmin \
+ && chmod -R g+rwX /var/lib/pgadmin \
+ && addgroup pgadmin4 tty \
  && mkdir -p /pgadmin4/config /pgadmin4/storage \
  && chown -R pgadmin4:pgadmin4 /pgadmin4 \
  && chmod -R g+rwX /pgadmin4 \
- && addgroup pgadmin4 tty \
  && apk add \
     fribidi \
     freetype \
@@ -107,7 +109,8 @@ RUN set -eux; \
 
 EXPOSE 5050
 
-VOLUME /pgadmin4/
+WORKDIR /var/lib/pgadmin
+VOLUME /var/lib/pgadmin /certs /pgadmin4
 
 COPY --from=builder /usr/local/lib/python%%PYTHON%%/  /usr/local/lib/python%%PYTHON%%/
 
