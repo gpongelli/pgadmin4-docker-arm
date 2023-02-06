@@ -9,6 +9,10 @@ ENV PGADMIN_VERSION=%%PGADMIN%%
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
+# use piwheels to avoid building wheels
+RUN echo "[global]" > /etc/pip.conf \
+    && echo "extra-index-url=https://www.piwheels.org/simple" >> /etc/pip.conf
+
 # install packages to compile pillow and the other python packages on ARM
 RUN apk add --no-cache \
         fribidi-dev \
@@ -42,49 +46,19 @@ RUN apk add --no-cache alpine-sdk linux-headers \
 ## -------------------------------------------
 ##
 
-FROM python:%%PYTHON_IMAGE%% AS app
+FROM python:%%PYTHON_IMAGE%% AS gosu_builder
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
 # switch to root, let the entrypoint drop back to pgadmin4
 USER root
 
-# create a non-privileged user to use at runtime, install non-devel packages
-RUN addgroup -g 50 -S pgadmin4 \
- && adduser -D -S -h /var/lib/pgadmin -s /sbin/nologin -u 1000 -G pgadmin4 pgadmin4 \
- && chown -R pgadmin4:pgadmin4 /var/lib/pgadmin \
- && chmod -R g+rwX /var/lib/pgadmin \
- && addgroup pgadmin4 tty \
- && mkdir -p /pgadmin4/config /pgadmin4/storage \
- && chown -R pgadmin4:pgadmin4 /pgadmin4 \
- && chmod -R g+rwX /pgadmin4 \
- && apk add \
-    fribidi \
-    freetype \
-    harfbuzz \
-    lcms2 \
-    libedit \
-    libffi \
-    libimagequant \
-    libpng \
-    libpq \
-    libstdc++ \
-    libwebp \
-    libxcb \
-    jpeg \
-    openjpeg \
-    postgresql \
-    tcl \
-    tiff \
-    tk \
-    zlib
-
-# install gosu for a better su+exec command
 ENV GOSU_VERSION 1.16
 RUN set -eux; \
 	\
 	apk add --no-cache --virtual .gosu-deps \
 		ca-certificates \
 		dpkg \
+		dirmngr \
 		gnupg \
 	; \
 	\
@@ -107,14 +81,47 @@ RUN set -eux; \
 	gosu --version; \
 	gosu nobody true
 
+
+##
+## -------------------------------------------
+##
+
+FROM python:%%PYTHON_IMAGE%% AS app
+MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
+
+# switch to root, let the entrypoint drop back to pgadmin4
+USER root
+
+# create a non-privileged user to use at runtime, install non-devel packages
+RUN addgroup -g 50 -S pgadmin4 \
+ && adduser -D -S -h /pgadmin4 -s /sbin/nologin -u 1000 -G pgadmin4 pgadmin4 \
+ && mkdir -p /pgadmin4/config /pgadmin4/storage \
+ && chown -R pgadmin4:pgadmin4 /pgadmin4 \
+ && chmod -R g+rwX /pgadmin4 \
+ && addgroup pgadmin4 tty \
+ && apk add \
+    fribidi \
+    freetype \
+    harfbuzz \
+    lcms2 \
+    libc6-compat \
+    libedit \
+    libffi \
+    libimagequant \
+    libpng \
+    libpq \
+    libstdc++ \
+    libwebp \
+    libxcb \
+    jpeg \
+    openjpeg \
+    postgresql \
+    tcl \
+    tiff \
+    tk \
+    zlib
+
 EXPOSE 5050
-
-WORKDIR /var/lib/pgadmin
-VOLUME /var/lib/pgadmin /certs /pgadmin4
-
-COPY --from=builder /usr/local/lib/python%%PYTHON%%/  /usr/local/lib/python%%PYTHON%%/
-
-COPY LICENSE config_distro.py /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/
 
 # add an entry-point script
 ENV ENTRY_POINT="entrypoint.sh"
@@ -122,8 +129,21 @@ COPY ${ENTRY_POINT} /${ENTRY_POINT}
 RUN chmod 755 /${ENTRY_POINT}
 ENV ENTRY_POINT=
 
-# run as pgadmin4
-USER pgadmin4
+# copy from builder image
+COPY --from=builder /usr/local/lib/python%%PYTHON%%/  /usr/local/lib/python%%PYTHON%%/
+
+# copy gosu from other image
+COPY --from=gosu_builder /usr/local/bin/gosu  /usr/local/bin/gosu
+RUN chmod +x /usr/local/bin/gosu;
+
+# copy from local folder
+COPY LICENSE config_distro.py /usr/local/lib/python%%PYTHON%%/site-packages/pgadmin4/
+
+WORKDIR /pgadmin4
+VOLUME /pgadmin4
+
+# run entrypoint as root, gosu will change
+#USER pgadmin4
 
 # using exec form to run also CMD into the entrypoint.
 # shell form will ignore CMD or docker run command line arguments
