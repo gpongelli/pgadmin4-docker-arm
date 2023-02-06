@@ -1,5 +1,4 @@
-[![Pulls](https://img.shields.io/docker/pulls/gpongelli/pgadmin4-docker-armv7.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-docker-armv7/)
-[![DockerBuild](https://img.shields.io/docker/cloud/build/gpongelli/pgadmin4-docker-armv7.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-docker-armv7/)
+[![Pulls](https://img.shields.io/docker/pulls/gpongelli/pgadmin4-arm.svg?style=flat-square&logo=docker)](https://hub.docker.com/r/gpongelli/pgadmin4-arm/)
 
 
 Last updated by bot: 2023-01-19
@@ -34,9 +33,10 @@ Starting from that project, I've added the github actions to build docker image 
 ## Tags
 To use a specific combination of pgAdmin 4 and python see the following table of available image tags.
 
-|       Tag       |  pgAdmin version  |  Python version  |   Distro   |  Architecture  |
-|-----------------|-------------------|------------------|------------|----------------|
-|  `6.19-py3.11`  |       6.19        |      3.11.1      | alpine3.16 |     armv7      |
+|          Tag          |  pgAdmin version  |  Python version  |   Distro   |  Architecture  |
+|-----------------------|-------------------|------------------|------------|----------------|
+|  `6.19-py3.11-armv7`  |       6.19        |      3.11.1      | alpine3.16 |     armv7      |
+|  `6.19-py3.11-armv8`  |       6.19        |      3.11.1      | alpine3.16 |     armv8      |
 
 Lovely! These tags are kept updated automatically (when new minor or patch version are released) by `build_versions.py` which is run twice a day on CircleCI.
 

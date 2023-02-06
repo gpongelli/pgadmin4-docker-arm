@@ -27,6 +27,11 @@ DEFAULT_DISTROS = ["alpine3.16"]
 DISTRO_TEMPLATE = {'alpine3.16': 'raspberry'}
 ARCHS = {'armv7': 'linux/arm/v7', 'armv8': 'linux/arm64'}
 
+# same keys of ARCHS used to download gosu tool
+# https://github.com/tianon/gosu/releases
+GOSU_ARCH = {'armv7': 'armhf', 'armv8': 'arm64'}
+GOSU_VERSION = "1.16"
+
 
 todays_date = datetime.utcnow().date().isoformat()
 
@@ -141,22 +146,25 @@ def version_combinations(pgadmin_versions, python_versions):
         for pg in pgadmin_versions:
             if pg["release_date"] < p["start_date"] or pg["release_date"] > p["end_date"]:
                 continue
-            distro = f'-{p["distro"]}' if p["distro"] != DEFAULT_DISTRO else ""
-            key = f'{pg["version"]}-py{p["key"]}{distro}'
-            versions.append(
-                {
-                    "key": key,
-                    "python": p["key"],
-                    "python_canonical": p["canonical_version"],
-                    "python_image": p["image"],
-                    "pgadmin": pg["version"],
-                    "pgadmin_canonical": pg["version"]+".0",
-                    "pgadmin_whl": pg["file_whl"],
-                    "distro": p["distro"],
-                    "arch": ','.join(ARCHS.keys()),
-                    "docker_arch": ','.join(ARCHS.values()),
-                }
-            )
+            for _a, _d in ARCHS.items():
+                distro = f'-{p["distro"]}' if p["distro"] != DEFAULT_DISTRO else ""
+                key = f'{pg["version"]}-py{p["key"]}{distro}-{_a}'
+                versions.append(
+                    {
+                        "key": key,
+                        "python": p["key"],
+                        "python_canonical": p["canonical_version"],
+                        "python_image": p["image"],
+                        "pgadmin": pg["version"],
+                        "pgadmin_canonical": pg["version"]+".0",
+                        "pgadmin_whl": pg["file_whl"],
+                        "distro": p["distro"],
+                        "arch": _a,
+                        "docker_arch": _d,
+                        "gosu_arch": GOSU_ARCH[_a],
+                        "gosu_version": GOSU_VERSION,
+                    }
+                )
 
     versions = sorted(versions, key=lambda v: DISTROS.index(v["distro"]))
     versions = sorted(versions, key=lambda v: by_semver_key(v["python_canonical"]), reverse=True)
@@ -208,7 +216,7 @@ def get_new_versions(current_versions, versions):
 
 def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
 
-    # Login to docker hub
+    # Login to docker hub, docker client app on host MUST be running
     docker_client = docker.from_env()
     dockerhub_username = os.getenv("DOCKERHUB_USERNAME")
     try:
@@ -222,7 +230,7 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
     failed_builds = []
 
     def build_image(version):
-        _file_suffix = f"{version['key']}-{str(version['arch']).replace(',' ,'_')}"
+        _file_suffix = f"{version['key']}-{version['arch']}"
         dockerfile = render_dockerfile(version)
         # docker build wants bytes
         with BytesIO(dockerfile.encode()) as fileobj:
@@ -240,7 +248,7 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
             try:
                 if not dry_run:
                     docker_client.images.build(path=os.getcwd(),
-                                               dockerfile="tmp.Dockerfile",
+                                               dockerfile=f"tmp.Dockerfile-{_file_suffix}",
                                                tag=tag,
                                                rm=True,
                                                platform=version['docker_arch'],
@@ -263,6 +271,7 @@ def build_new_or_updated(new_or_updated, dry_run=False, debug=False):
                             logging.warning("Retrying... %s retries left", retries)
             except docker.errors.BuildError as e:
                 logging.error("Failed building %s, skipping...", version)
+                logging.error(e)
                 failed_builds.append(version)
 
     with ThreadPoolExecutor(max_workers=4) as executor:
@@ -348,11 +357,13 @@ def main(distros, dry_run, debug, pgadmin_min_ver, python_min_ver):
     if new_versions := get_new_versions(current_versions, versions):
         # Build tag and release docker images
         failed_builds = build_new_or_updated(new_versions, dry_run, debug)
+        success_builds = [v for v in versions if v not in failed_builds]
 
-        # persist image data after build ended
-        persist_versions(versions, dry_run)
-        update_readme_tags_table(versions, dry_run)
-        save_latest_dockerfile(pgadmin_versions, python_min_ver)
+        if success_builds:
+            # persist image data after build ended
+            persist_versions(success_builds, dry_run)
+            update_readme_tags_table(success_builds, dry_run)
+            save_latest_dockerfile(pgadmin_versions, python_min_ver)
 
     # FIXME(perf): Generate a CircleCI config file with a workflow (parallell) and trigger this workflow via the API.
     # Ref: https://circleci.com/docs/2.0/api-job-trigger/

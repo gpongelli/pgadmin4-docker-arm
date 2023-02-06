@@ -9,6 +9,10 @@ ENV PGADMIN_VERSION=6.19
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
+# use piwheels to avoid building wheels
+RUN echo "[global]" > /etc/pip.conf \
+    && echo "extra-index-url=https://www.piwheels.org/simple" >> /etc/pip.conf
+
 # install packages to compile pillow and the other python packages on ARM
 RUN apk add --no-cache \
         fribidi-dev \
@@ -42,19 +46,65 @@ RUN apk add --no-cache alpine-sdk linux-headers \
 ## -------------------------------------------
 ##
 
+FROM python:3.11.1-alpine3.16 AS gosu_builder
+MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
+
+# switch to root, let the entrypoint drop back to pgadmin4
+USER root
+
+ENV GOSU_VERSION 1.16
+RUN set -eux; \
+	\
+	apk add --no-cache --virtual .gosu-deps \
+		ca-certificates \
+		dpkg \
+		dirmngr \
+		gnupg \
+	; \
+	\
+	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+	wget -O /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+	wget -O /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+	\
+# verify the signature
+	export GNUPGHOME="$(mktemp -d)"; \
+	gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+	command -v gpgconf && gpgconf --kill all || :; \
+	rm -rf "$GNUPGHOME" /usr/local/bin/gosu.asc; \
+	\
+# clean up fetch dependencies
+	apk del --no-network .gosu-deps; \
+	\
+	chmod +x /usr/local/bin/gosu; \
+# verify that the binary works
+	gosu --version; \
+	gosu nobody true
+
+
+##
+## -------------------------------------------
+##
+
 FROM python:3.11.1-alpine3.16 AS app
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
+# switch to root, let the entrypoint drop back to pgadmin4
+USER root
+
 # create a non-privileged user to use at runtime, install non-devel packages
-RUN addgroup -g 50 -S pgadmin \
- && adduser -D -S -h /pgadmin -s /sbin/nologin -u 1000 -G pgadmin pgadmin \
- && mkdir -p /pgadmin/config /pgadmin/storage \
- && chown -R 1000:50 /pgadmin \
+RUN addgroup -g 50 -S pgadmin4 \
+ && adduser -D -S -h /pgadmin4 -s /sbin/nologin -u 1000 -G pgadmin4 pgadmin4 \
+ && mkdir -p /pgadmin4/config /pgadmin4/storage \
+ && chown -R pgadmin4:pgadmin4 /pgadmin4 \
+ && chmod -R g+rwX /pgadmin4 \
+ && addgroup pgadmin4 tty \
  && apk add \
     fribidi \
     freetype \
     harfbuzz \
     lcms2 \
+    libc6-compat \
     libedit \
     libffi \
     libimagequant \
@@ -71,13 +121,36 @@ RUN addgroup -g 50 -S pgadmin \
     tk \
     zlib
 
-
 EXPOSE 5050
 
+# add an entry-point script
+ENV ENTRY_POINT="entrypoint.sh"
+COPY ${ENTRY_POINT} /${ENTRY_POINT}
+RUN chmod 755 /${ENTRY_POINT}
+ENV ENTRY_POINT=
+
+# copy from builder image
 COPY --from=builder /usr/local/lib/python3.11/  /usr/local/lib/python3.11/
 
+# copy gosu from other image
+COPY --from=gosu_builder /usr/local/bin/gosu  /usr/local/bin/gosu
+RUN chmod +x /usr/local/bin/gosu;
+
+# copy from local folder
 COPY LICENSE config_distro.py /usr/local/lib/python3.11/site-packages/pgadmin4/
 
-USER pgadmin:pgadmin
-CMD python /usr/local/lib/python3.11/site-packages/pgadmin4/pgAdmin4.py
-VOLUME /pgadmin/
+WORKDIR /pgadmin4
+VOLUME /pgadmin4
+
+# run entrypoint as root, gosu will change
+#USER pgadmin4
+
+# using exec form to run also CMD into the entrypoint.
+# shell form will ignore CMD or docker run command line arguments
+# ref https://docs.docker.com/engine/reference/builder/#shell-form-entrypoint-example
+ENTRYPOINT ["/entrypoint.sh"]
+
+# https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact
+# the exec form works correctly when launching with user: 0 and without it
+# the shell form does starting loop if launched as pgadmin4 user
+CMD ["python", "/usr/local/lib/python3.11/site-packages/pgadmin4/pgAdmin4.py"]

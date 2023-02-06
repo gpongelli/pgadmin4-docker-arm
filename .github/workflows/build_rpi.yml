@@ -29,6 +29,7 @@ jobs:
 
     outputs:
       cmt_msg: ""
+      push_cmd: ""
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -95,6 +96,7 @@ jobs:
         with:
           script: |
             core.setOutput('cmt_msg', '[ci skip] Cron execution on ${{ steps.get_date.outputs.year }}-${{ steps.get_date.outputs.month }}-${{ steps.get_date.outputs.day }}');
+            core.setOutput('push_cmd', 'origin ${{ github.ref_name }} --force');
 
       - name: add new version to git
         uses: EndBug/add-and-commit@v9.1.1
@@ -103,4 +105,4 @@ jobs:
           author_name: ${{ secrets.GH_NAME }}
           author_email: ${{ secrets.GH_EMAIL }}
           message: ${{ steps.set_cmt_message.outputs.cmt_msg }}
-          push: 'origin main --force'
+          push: ${{ steps.set_cmt_message.outputs.push_cmd }}
