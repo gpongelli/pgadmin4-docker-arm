@@ -1,6 +1,6 @@
-# python: 3.11.1
+# python: 3.11.2
 # pgadmin: 6.19.0
-FROM python:3.11.1-alpine3.16 AS builder
+FROM python:3.11.2-alpine3.16 AS builder
 #  alpine3.16 uses openss1.1.1  https://github.com/pyca/cryptography/issues/7868 , alpine 3.17 uses openssl 3.0.x that
 #   raises ImportError with FIPS_mode
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
@@ -46,7 +46,7 @@ RUN apk add --no-cache alpine-sdk linux-headers \
 ## -------------------------------------------
 ##
 
-FROM python:3.11.1-alpine3.16 AS gosu_builder
+FROM python:3.11.2-alpine3.16 AS gosu_builder
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
 # switch to root, let the entrypoint drop back to pgadmin4
@@ -86,7 +86,7 @@ RUN set -eux; \
 ## -------------------------------------------
 ##
 
-FROM python:3.11.1-alpine3.16 AS app
+FROM python:3.11.2-alpine3.16 AS app
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
 # switch to root, let the entrypoint drop back to pgadmin4
