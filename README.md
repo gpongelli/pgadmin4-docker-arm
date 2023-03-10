@@ -35,6 +35,8 @@ To use a specific combination of pgAdmin 4 and python see the following table of
 
 |          Tag          |  pgAdmin version  |  Python version  |   Distro   |  Architecture  |
 |-----------------------|-------------------|------------------|------------|----------------|
+|  `6.21-py3.11-armv7`  |       6.21        |      3.11.2      | alpine3.16 |     armv7      |
+|  `6.21-py3.11-armv8`  |       6.21        |      3.11.2      | alpine3.16 |     armv8      |
 |  `6.20-py3.11-armv7`  |       6.20        |      3.11.2      | alpine3.16 |     armv7      |
 |  `6.20-py3.11-armv8`  |       6.20        |      3.11.2      | alpine3.16 |     armv8      |
 |  `6.19-py3.11-armv7`  |       6.19        |      3.11.2      | alpine3.16 |     armv7      |

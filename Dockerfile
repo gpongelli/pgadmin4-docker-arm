@@ -1,11 +1,11 @@
 # python: 3.11.2
-# pgadmin: 6.19.0
+# pgadmin: 6.20.0
 FROM python:3.11.2-alpine3.16 AS builder
 #  alpine3.16 uses openss1.1.1  https://github.com/pyca/cryptography/issues/7868 , alpine 3.17 uses openssl 3.0.x that
 #   raises ImportError with FIPS_mode
 MAINTAINER Gabriele Pongelli <gabriele.pongelli@gmail.com>
 
-ENV PGADMIN_VERSION=6.19
+ENV PGADMIN_VERSION=6.20
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
@@ -39,7 +39,7 @@ RUN apk add --no-cache alpine-sdk linux-headers \
  && pip install --upgrade pip \
  && pip install --no-cache-dir --upgrade Flask-WTF>=0.14.3 \
  && pip install --no-cache-dir Werkzeug>=2.2.2 simple-websocket dnspython==2.2.1 \
- && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/pgadmin4-6.19-py3-none-any.whl" | pip install --no-cache-dir -r /dev/stdin \
+ && echo "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/v${PGADMIN_VERSION}/pip/pgadmin4-6.20-py3-none-any.whl" | pip install --no-cache-dir -r /dev/stdin \
  && apk del alpine-sdk linux-headers
 
 ##
